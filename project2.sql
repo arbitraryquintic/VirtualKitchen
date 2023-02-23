@@ -22,14 +22,14 @@ You review her code today and decide to reformat her query so that she can catch
     -- put it altogether and calculate distance from customer city to Virtual Kitchen stores
 
 with 
- 	impacted_customers as (
+    impacted_customers as (
         select 
-        	customer_id
+           customer_id
             , customer_city
             , customer_state
         from vk_data.customers.customer_address
         where 
-        	(customer_state = 'KY'
+           (customer_state = 'KY'
             and (trim(customer_city) ilike '%concord%' 
             or trim(customer_city) ilike '%georgetown%' 
             or trim(customer_city) ilike '%ashland%')
@@ -38,14 +38,16 @@ with
             	and (trim(customer_city) ilike '%oakland%' 
                 or trim(customer_city) ilike '%pleasant hill%')
             )
+            /* --original code with confusing and-or order of operations, brownsville does not need to be in TX
+            or (customer_state = 'TX' and (trim(customer_city) ilike '%arlington%') or trim(customer_city) ilike '%brownsville%' */
             or (customer_state = 'TX' 
             	and (trim(customer_city) ilike '%arlington%') 
-            ) -- brownsville does not have to be in TX
+            ) -- clearer syntax, brownsville does not have to be in TX
             or trim(customer_city) ilike '%brownsville%'
-	),
+    ),
     impacted_customers_with_geocodes as (
-		select 
-        	ic.*
+	select 
+            ic.*
             , us.geo_location
         from impacted_customers as ic 
         -- we only want customers with a geocode we can match to the us cities dataset so we can calculate distance for
@@ -64,13 +66,13 @@ with
 	),
     geo_chicago as (
     	select 
-        	geo_location as geo_chicago
+            geo_location as geo_chicago
     	from vk_data.resources.us_cities 
     	where lower(trim(city_name)) = 'chicago' and lower(trim(state_abbr)) = 'il'
     ),
     geo_gary as (
     	select 
-        	geo_location as geo_gary
+            geo_location as geo_gary
     	from vk_data.resources.us_cities 
     	where lower(trim(city_name)) = 'gary' and lower(trim(state_abbr)) = 'in'
     ) 
